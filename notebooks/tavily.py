@@ -3,7 +3,7 @@
 # Create a text widget for API key
 dbutils.widgets.text("api_key", "", "API Key")
 api_key = dbutils.widgets.get("api_key")
-print(f"Using api_key: {api_key}")
+print(f"Using api_key: {api_key[:8]}..." if len(api_key) > 8 else "API key set")
 
 # COMMAND ----------
 

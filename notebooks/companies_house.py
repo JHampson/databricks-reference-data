@@ -9,21 +9,28 @@
 
 # COMMAND ----------
 
+import requests
+
+# COMMAND ----------
+
+# DBTITLE 1,Get workspace context
+workspace_url = (
+    dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiUrl().get()
+)
+pat = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
+
+# COMMAND ----------
+
 # DBTITLE 1,Fetch the API key values
 # Create a text widget for API key
 dbutils.widgets.text("api_key", "", "API Key")
 api_key = dbutils.widgets.get("api_key")
-print(f"Using api_key: {api_key}")
+print(f"Using api_key: {api_key[:8]}..." if len(api_key) > 8 else "API key set")
 
 # COMMAND ----------
 
-import requests
-
-workspace_url = (
-    dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiUrl().get()
-)
+# DBTITLE 1,Create secret scope
 url = f"{workspace_url}/api/2.0/secrets/scopes/create"
-pat = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
 headers = {"Authorization": f"Bearer {pat}", "Content-Type": "application/json"}
 data = {"scope": "companies_house"}
 response = requests.post(url, headers=headers, json=data)
@@ -37,12 +44,7 @@ else:
 
 # COMMAND ----------
 
-import requests
-
-workspace_url = (
-    dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiUrl().get()
-)
-pat = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
+# DBTITLE 1,Store API key in secrets
 scope_name = "companies_house"
 key_name = "api_key"
 api_key = dbutils.widgets.get("api_key")
@@ -118,6 +120,8 @@ print(f"Using schema: {schema}")
 # MAGIC import requests
 # MAGIC import base64
 # MAGIC
+# MAGIC TIMEOUT = 30
+# MAGIC
 # MAGIC # Construct Basic auth header
 # MAGIC auth_header = "Basic " + base64.b64encode((api_key + ":").encode("utf-8")).decode("utf-8")
 # MAGIC
@@ -131,8 +135,17 @@ print(f"Using schema: {schema}")
 # MAGIC headers = {
 # MAGIC     "Authorization": auth_header
 # MAGIC }
-# MAGIC response = requests.get(url, params=params, headers=headers)
-# MAGIC return response.text
+# MAGIC
+# MAGIC try:
+# MAGIC     response = requests.get(url, params=params, headers=headers, timeout=TIMEOUT)
+# MAGIC     response.raise_for_status()
+# MAGIC     return response.text
+# MAGIC except requests.exceptions.Timeout:
+# MAGIC     return f'{{"error": "Request timed out after {TIMEOUT} seconds"}}'
+# MAGIC except requests.exceptions.HTTPError:
+# MAGIC     return f'{{"error": "HTTP {response.status_code}", "message": "{response.text}"}}'
+# MAGIC except Exception as e:
+# MAGIC     return f'{{"error": "Request failed", "message": "{str(e)}"}}'
 # MAGIC $$;
 # MAGIC
 
@@ -185,6 +198,8 @@ spark.sql(query)
 # MAGIC import requests
 # MAGIC import base64
 # MAGIC
+# MAGIC TIMEOUT = 30
+# MAGIC
 # MAGIC # Construct Basic auth header
 # MAGIC auth_header = "Basic " + base64.b64encode((api_key + ":").encode("utf-8")).decode("utf-8")
 # MAGIC
@@ -193,8 +208,17 @@ spark.sql(query)
 # MAGIC headers = {
 # MAGIC     "Authorization": auth_header
 # MAGIC }
-# MAGIC response = requests.get(url, headers=headers)
-# MAGIC return response.text
+# MAGIC
+# MAGIC try:
+# MAGIC     response = requests.get(url, headers=headers, timeout=TIMEOUT)
+# MAGIC     response.raise_for_status()
+# MAGIC     return response.text
+# MAGIC except requests.exceptions.Timeout:
+# MAGIC     return f'{{"error": "Request timed out after {TIMEOUT} seconds"}}'
+# MAGIC except requests.exceptions.HTTPError:
+# MAGIC     return f'{{"error": "HTTP {response.status_code}", "message": "{response.text}"}}'
+# MAGIC except Exception as e:
+# MAGIC     return f'{{"error": "Request failed", "message": "{str(e)}"}}'
 # MAGIC $$;
 
 # COMMAND ----------
@@ -241,6 +265,8 @@ display(result_df)
 # MAGIC import requests
 # MAGIC import base64
 # MAGIC
+# MAGIC TIMEOUT = 30
+# MAGIC
 # MAGIC # Construct Basic auth header
 # MAGIC auth_header = "Basic " + base64.b64encode((api_key + ":").encode("utf-8")).decode("utf-8")
 # MAGIC
@@ -253,8 +279,17 @@ display(result_df)
 # MAGIC headers = {
 # MAGIC     "Authorization": auth_header
 # MAGIC }
-# MAGIC response = requests.get(url, params=params, headers=headers)
-# MAGIC return response.text
+# MAGIC
+# MAGIC try:
+# MAGIC     response = requests.get(url, params=params, headers=headers, timeout=TIMEOUT)
+# MAGIC     response.raise_for_status()
+# MAGIC     return response.text
+# MAGIC except requests.exceptions.Timeout:
+# MAGIC     return f'{{"error": "Request timed out after {TIMEOUT} seconds"}}'
+# MAGIC except requests.exceptions.HTTPError:
+# MAGIC     return f'{{"error": "HTTP {response.status_code}", "message": "{response.text}"}}'
+# MAGIC except Exception as e:
+# MAGIC     return f'{{"error": "Request failed", "message": "{str(e)}"}}'
 # MAGIC $$;
 
 # COMMAND ----------
@@ -297,6 +332,8 @@ spark.sql(query)
 # MAGIC import requests
 # MAGIC import base64
 # MAGIC
+# MAGIC TIMEOUT = 30
+# MAGIC
 # MAGIC # Construct Basic auth header
 # MAGIC auth_header = "Basic " + base64.b64encode((api_key + ":").encode("utf-8")).decode("utf-8")
 # MAGIC
@@ -309,8 +346,17 @@ spark.sql(query)
 # MAGIC headers = {
 # MAGIC     "Authorization": auth_header
 # MAGIC }
-# MAGIC response = requests.get(url, params=params, headers=headers)
-# MAGIC return response.text
+# MAGIC
+# MAGIC try:
+# MAGIC     response = requests.get(url, params=params, headers=headers, timeout=TIMEOUT)
+# MAGIC     response.raise_for_status()
+# MAGIC     return response.text
+# MAGIC except requests.exceptions.Timeout:
+# MAGIC     return f'{{"error": "Request timed out after {TIMEOUT} seconds"}}'
+# MAGIC except requests.exceptions.HTTPError:
+# MAGIC     return f'{{"error": "HTTP {response.status_code}", "message": "{response.text}"}}'
+# MAGIC except Exception as e:
+# MAGIC     return f'{{"error": "Request failed", "message": "{str(e)}"}}'
 # MAGIC $$;
 
 # COMMAND ----------
