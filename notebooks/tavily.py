@@ -2,7 +2,7 @@
 # DBTITLE 1,Create API key parameter widget
 # Create a text widget for API key
 dbutils.widgets.text("api_key", "", "API Key")
-api_key = dbutils.widgets.get("api_key")
+api_key: str = dbutils.widgets.get("api_key")
 print(f"Using api_key: {api_key[:8]}..." if len(api_key) > 8 else "API key set")
 
 # COMMAND ----------
@@ -10,7 +10,7 @@ print(f"Using api_key: {api_key[:8]}..." if len(api_key) > 8 else "API key set")
 # DBTITLE 1,Create catalog parameter widget
 # Create a text widget for catalog name
 dbutils.widgets.text("catalog", "", "Catalog Name")
-catalog_name = dbutils.widgets.get("catalog")
+catalog_name: str = dbutils.widgets.get("catalog")
 print(f"Using catalog: {catalog_name}")
 
 # COMMAND ----------
@@ -22,7 +22,7 @@ print(f"Using catalog: {catalog_name}")
 # COMMAND ----------
 
 dbutils.widgets.text("schema", "tavily", "Schema")
-schema = dbutils.widgets.get("schema")
+schema: str = dbutils.widgets.get("schema")
 print(f"Using schema: {schema}")
 
 # COMMAND ----------

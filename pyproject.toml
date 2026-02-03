@@ -19,12 +19,18 @@ select = [
     "B",      # flake8-bugbear
     "C4",     # flake8-comprehensions
     "UP",     # pyupgrade
+    "ANN",    # flake8-annotations (type hints)
 ]
 ignore = [
     "E501",   # line too long (handled by formatter, but SQL strings can be long)
     "E402",   # module level import not at top of file (Databricks notebooks)
     "F401",   # imported but unused (common in notebooks for side effects)
     "F821",   # undefined name (dbutils, spark, display are Databricks globals)
+    "ANN001", # missing type annotation for function argument
+    "ANN002", # missing type annotation for *args
+    "ANN003", # missing type annotation for **kwargs
+    "ANN201", # missing return type annotation for public function
+    "ANN202", # missing return type annotation for private function
 ]
 
 [tool.ruff.lint.per-file-ignores]

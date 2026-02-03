@@ -14,26 +14,31 @@ import requests
 # COMMAND ----------
 
 # DBTITLE 1,Get workspace context
-workspace_url = (
+workspace_url: str = (
     dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiUrl().get()
 )
-pat = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
+pat: str = (
+    dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
+)
 
 # COMMAND ----------
 
 # DBTITLE 1,Fetch the API key values
 # Create a text widget for API key
 dbutils.widgets.text("api_key", "", "API Key")
-api_key = dbutils.widgets.get("api_key")
+api_key: str = dbutils.widgets.get("api_key")
 print(f"Using api_key: {api_key[:8]}..." if len(api_key) > 8 else "API key set")
 
 # COMMAND ----------
 
 # DBTITLE 1,Create secret scope
-url = f"{workspace_url}/api/2.0/secrets/scopes/create"
-headers = {"Authorization": f"Bearer {pat}", "Content-Type": "application/json"}
-data = {"scope": "companies_house"}
-response = requests.post(url, headers=headers, json=data)
+url: str = f"{workspace_url}/api/2.0/secrets/scopes/create"
+headers: dict[str, str] = {
+    "Authorization": f"Bearer {pat}",
+    "Content-Type": "application/json",
+}
+data: dict[str, str] = {"scope": "companies_house"}
+response: requests.Response = requests.post(url, headers=headers, json=data)
 
 if response.status_code == 400 and "RESOURCE_ALREADY_EXISTS" in response.text:
     print("Scope already exists, continue")
@@ -45,14 +50,17 @@ else:
 # COMMAND ----------
 
 # DBTITLE 1,Store API key in secrets
-scope_name = "companies_house"
-key_name = "api_key"
-api_key = dbutils.widgets.get("api_key")
+scope_name: str = "companies_house"
+key_name: str = "api_key"
+api_key: str = dbutils.widgets.get("api_key")
 
-url = f"{workspace_url}/api/2.0/secrets/put"
-headers = {"Authorization": f"Bearer {pat}", "Content-Type": "application/json"}
-data = {"scope": scope_name, "key": key_name, "string_value": api_key}
-response = requests.post(url, headers=headers, json=data)
+url: str = f"{workspace_url}/api/2.0/secrets/put"
+headers: dict[str, str] = {
+    "Authorization": f"Bearer {pat}",
+    "Content-Type": "application/json",
+}
+data: dict[str, str] = {"scope": scope_name, "key": key_name, "string_value": api_key}
+response: requests.Response = requests.post(url, headers=headers, json=data)
 
 if response.status_code != 200:
     raise Exception(f"Failed to store secret: {response.status_code} {response.text}")
@@ -64,7 +72,7 @@ else:
 # DBTITLE 1,Create catalog parameter widget
 # Create a text widget for catalog name
 dbutils.widgets.text("catalog", "", "Catalog Name")
-catalog_name = dbutils.widgets.get("catalog")
+catalog_name: str = dbutils.widgets.get("catalog")
 print(f"Using catalog: {catalog_name}")
 
 # COMMAND ----------
@@ -76,7 +84,7 @@ print(f"Using catalog: {catalog_name}")
 # COMMAND ----------
 
 dbutils.widgets.text("schema", "companies_house", "Schema")
-schema = dbutils.widgets.get("schema")
+schema: str = dbutils.widgets.get("schema")
 print(f"Using schema: {schema}")
 
 # COMMAND ----------
@@ -152,7 +160,7 @@ print(f"Using schema: {schema}")
 # COMMAND ----------
 
 # DBTITLE 1,Create outer function for searching companies
-query = f"""
+query: str = f"""
 CREATE OR REPLACE FUNCTION {catalog_name}.{schema}.search_companies(
     query STRING COMMENT 'Search query',
     items_per_page INT DEFAULT 10 COMMENT 'Number of items per page (Default: 10)',
@@ -224,7 +232,7 @@ spark.sql(query)
 # COMMAND ----------
 
 # DBTITLE 1,Create outer function to get company profile
-query = f"""
+query: str = f"""
 CREATE OR REPLACE FUNCTION {catalog_name}.{schema}.get_company_profile(
     company_number STRING COMMENT 'Company number'
 )
@@ -295,7 +303,7 @@ display(result_df)
 # COMMAND ----------
 
 # DBTITLE 1,Create outer function to get company officers
-query = f"""
+query: str = f"""
 CREATE OR REPLACE FUNCTION {catalog_name}.{schema}.get_company_officers(
     company_number STRING COMMENT 'Company number',
     items_per_page INT DEFAULT 35 COMMENT 'Number of items per page (Default: 35)',
@@ -362,7 +370,7 @@ spark.sql(query)
 # COMMAND ----------
 
 # DBTITLE 1,Create outer function to get filing history
-query = f"""
+query: str = f"""
 CREATE OR REPLACE FUNCTION {catalog_name}.{schema}.get_filing_history(
     company_number STRING COMMENT 'Company number',
     items_per_page INT DEFAULT 25 COMMENT 'Number of items per page (Default: 25)',
