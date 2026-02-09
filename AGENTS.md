@@ -85,8 +85,8 @@ Creates functions for stock market data and financial information using the yfin
 | Function | Signature | Description |
 |----------|-----------|-------------|
 | `get_stock_info` | `get_stock_info(symbol STRING) RETURNS STRING` | Get comprehensive stock information |
-| `get_stock_history` | `get_stock_history(symbol STRING, period STRING DEFAULT '1mo', interval_val STRING DEFAULT '1d') RETURNS STRING` | Get historical OHLCV data |
-| `get_financials` | `get_financials(symbol STRING, statement_type STRING DEFAULT 'income') RETURNS STRING` | Get financial statements |
+| `get_stock_history` | `get_stock_history(symbol STRING, period STRING, interval_val STRING) RETURNS STRING` | Get historical OHLCV data |
+| `get_financials` | `get_financials(symbol STRING, statement_type STRING) RETURNS STRING` | Get financial statements |
 | `get_recommendations` | `get_recommendations(symbol STRING) RETURNS STRING` | Get analyst recommendations |
 | `get_dividends` | `get_dividends(symbol STRING) RETURNS STRING` | Get dividend history |
 

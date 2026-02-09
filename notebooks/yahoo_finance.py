@@ -49,7 +49,10 @@ print(f"Using schema: {schema}")
 # MAGIC )
 # MAGIC RETURNS STRING
 # MAGIC LANGUAGE PYTHON
-# MAGIC PACKAGES = ('yfinance')
+# MAGIC ENVIRONMENT (
+# MAGIC   dependencies = '["yfinance"]',
+# MAGIC   environment_version = 'None'
+# MAGIC )
 # MAGIC COMMENT 'Get comprehensive stock information from Yahoo Finance including company details, market cap, P/E ratio, sector, and more'
 # MAGIC AS $$
 # MAGIC import yfinance as yf
@@ -81,12 +84,15 @@ display(result_df)
 # MAGIC -- Create UC Function to get historical stock data
 # MAGIC CREATE OR REPLACE FUNCTION get_stock_history(
 # MAGIC   symbol STRING COMMENT 'Stock ticker symbol (e.g., AAPL, MSFT, GOOGL)',
-# MAGIC   period STRING DEFAULT '1mo' COMMENT 'Data period: 1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max',
-# MAGIC   interval_val STRING DEFAULT '1d' COMMENT 'Data interval: 1m, 2m, 5m, 15m, 30m, 60m, 90m, 1h, 1d, 5d, 1wk, 1mo, 3mo'
+# MAGIC   period STRING COMMENT 'Data period: 1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max',
+# MAGIC   interval_val STRING COMMENT 'Data interval: 1m, 2m, 5m, 15m, 30m, 60m, 90m, 1h, 1d, 5d, 1wk, 1mo, 3mo'
 # MAGIC )
 # MAGIC RETURNS STRING
 # MAGIC LANGUAGE PYTHON
-# MAGIC PACKAGES = ('yfinance')
+# MAGIC ENVIRONMENT (
+# MAGIC   dependencies = '["yfinance"]',
+# MAGIC   environment_version = 'None'
+# MAGIC )
 # MAGIC COMMENT 'Get historical OHLCV (Open, High, Low, Close, Volume) data for a stock'
 # MAGIC AS $$
 # MAGIC import yfinance as yf
@@ -130,11 +136,14 @@ display(result_df)
 # MAGIC -- Create UC Function to get financial statements
 # MAGIC CREATE OR REPLACE FUNCTION get_financials(
 # MAGIC   symbol STRING COMMENT 'Stock ticker symbol (e.g., AAPL, MSFT, GOOGL)',
-# MAGIC   statement_type STRING DEFAULT 'income' COMMENT 'Statement type: income, balance, cashflow'
+# MAGIC   statement_type STRING COMMENT 'Statement type: income, balance, cashflow'
 # MAGIC )
 # MAGIC RETURNS STRING
 # MAGIC LANGUAGE PYTHON
-# MAGIC PACKAGES = ('yfinance')
+# MAGIC ENVIRONMENT (
+# MAGIC   dependencies = '["yfinance"]',
+# MAGIC   environment_version = 'None'
+# MAGIC )
 # MAGIC COMMENT 'Get financial statements (income statement, balance sheet, or cash flow) for a company'
 # MAGIC AS $$
 # MAGIC import yfinance as yf
@@ -186,7 +195,10 @@ display(result_df)
 # MAGIC )
 # MAGIC RETURNS STRING
 # MAGIC LANGUAGE PYTHON
-# MAGIC PACKAGES = ('yfinance')
+# MAGIC ENVIRONMENT (
+# MAGIC   dependencies = '["yfinance"]',
+# MAGIC   environment_version = 'None'
+# MAGIC )
 # MAGIC COMMENT 'Get analyst recommendations and ratings for a stock'
 # MAGIC AS $$
 # MAGIC import yfinance as yf
@@ -231,7 +243,10 @@ display(result_df)
 # MAGIC )
 # MAGIC RETURNS STRING
 # MAGIC LANGUAGE PYTHON
-# MAGIC PACKAGES = ('yfinance')
+# MAGIC ENVIRONMENT (
+# MAGIC   dependencies = '["yfinance"]',
+# MAGIC   environment_version = 'None'
+# MAGIC )
 # MAGIC COMMENT 'Get dividend payment history for a stock'
 # MAGIC AS $$
 # MAGIC import yfinance as yf
@@ -335,13 +350,13 @@ display(result_df)
 # MAGIC
 # MAGIC 2. **get_stock_history(symbol, period, interval_val)** - Get historical OHLCV data
 # MAGIC    * `symbol` (STRING) - Stock ticker symbol
-# MAGIC    * `period` (STRING, default: '1mo') - Data period (1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max)
-# MAGIC    * `interval_val` (STRING, default: '1d') - Data interval (1m, 2m, 5m, 15m, 30m, 60m, 90m, 1h, 1d, 5d, 1wk, 1mo, 3mo)
+# MAGIC    * `period` (STRING) - Data period (1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max)
+# MAGIC    * `interval_val` (STRING) - Data interval (1m, 2m, 5m, 15m, 30m, 60m, 90m, 1h, 1d, 5d, 1wk, 1mo, 3mo)
 # MAGIC    * Returns: JSON with historical Open, High, Low, Close, Volume data
 # MAGIC
 # MAGIC 3. **get_financials(symbol, statement_type)** - Get financial statements
 # MAGIC    * `symbol` (STRING) - Stock ticker symbol
-# MAGIC    * `statement_type` (STRING, default: 'income') - Statement type: 'income', 'balance', or 'cashflow'
+# MAGIC    * `statement_type` (STRING) - Statement type: 'income', 'balance', or 'cashflow'
 # MAGIC    * Returns: JSON with financial statement data
 # MAGIC
 # MAGIC 4. **get_recommendations(symbol)** - Get analyst recommendations

@@ -165,20 +165,20 @@ Get comprehensive stock information including company details, market cap, P/E r
 
 Get historical OHLCV (Open, High, Low, Close, Volume) data.
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `symbol` | STRING | required | Stock ticker symbol |
-| `period` | STRING | "1mo" | Data period: 1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max |
-| `interval_val` | STRING | "1d" | Data interval: 1m, 2m, 5m, 15m, 30m, 60m, 90m, 1h, 1d, 5d, 1wk, 1mo, 3mo |
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `symbol` | STRING | Stock ticker symbol |
+| `period` | STRING | Data period: 1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max |
+| `interval_val` | STRING | Data interval: 1m, 2m, 5m, 15m, 30m, 60m, 90m, 1h, 1d, 5d, 1wk, 1mo, 3mo |
 
 #### `get_financials(symbol, statement_type)`
 
 Get financial statements for a company.
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `symbol` | STRING | required | Stock ticker symbol |
-| `statement_type` | STRING | "income" | Statement type: "income", "balance", or "cashflow" |
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `symbol` | STRING | Stock ticker symbol |
+| `statement_type` | STRING | Statement type: "income", "balance", or "cashflow" |
 
 #### `get_recommendations(symbol)`
 
