@@ -12,14 +12,16 @@ This repository provides ready-to-use Databricks notebooks that set up Unity Cat
 |-------------|----------|-------------------|-------------|
 | **Tavily** | `notebooks/tavily.py` | `search()`, `extract()` | Web search and content extraction API |
 | **Companies House** | `notebooks/companies_house.py` | `search_companies()`, `get_company_profile()`, `get_company_officers()`, `get_filing_history()` | UK company registration data |
+| **Yahoo Finance** | `notebooks/yahoo_finance.py` | `get_stock_info()`, `get_stock_history()`, `get_financials()`, `get_recommendations()`, `get_dividends()` | Stock market data and financial information |
 
 ## Prerequisites
 
 - Databricks workspace with Unity Catalog enabled
 - Appropriate permissions to create schemas and functions in your target catalog
-- API keys for the services you want to use:
+- API keys for the services that require them:
   - **Tavily**: Get an API key from [tavily.com](https://tavily.com)
   - **Companies House**: Register at [developer.company-information.service.gov.uk](https://developer.company-information.service.gov.uk/)
+  - **Yahoo Finance**: No API key required (uses yfinance library)
 
 ## Usage
 
@@ -59,6 +61,21 @@ SELECT main.companies_house.get_company_officers(company_number => '14307029');
 
 -- Companies House: Get filing history
 SELECT main.companies_house.get_filing_history(company_number => '14307029');
+
+-- Yahoo Finance: Get stock info
+SELECT main.yahoo_finance.get_stock_info(symbol => 'AAPL');
+
+-- Yahoo Finance: Get stock history
+SELECT main.yahoo_finance.get_stock_history(symbol => 'MSFT', period => '1mo', interval_val => '1d');
+
+-- Yahoo Finance: Get financials
+SELECT main.yahoo_finance.get_financials(symbol => 'GOOGL', statement_type => 'income');
+
+-- Yahoo Finance: Get analyst recommendations
+SELECT main.yahoo_finance.get_recommendations(symbol => 'NVDA');
+
+-- Yahoo Finance: Get dividend history
+SELECT main.yahoo_finance.get_dividends(symbol => 'JNJ');
 ```
 
 ## Function Reference
@@ -134,6 +151,51 @@ Get company filing history.
 | `items_per_page` | INT | 25 | Results per page |
 | `start_index` | INT | 0 | Pagination offset |
 
+### Yahoo Finance Functions
+
+#### `get_stock_info(symbol)`
+
+Get comprehensive stock information including company details, market cap, P/E ratio, sector, and more.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `symbol` | STRING | required | Stock ticker symbol (e.g., AAPL, MSFT, GOOGL) |
+
+#### `get_stock_history(symbol, period, interval_val)`
+
+Get historical OHLCV (Open, High, Low, Close, Volume) data.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `symbol` | STRING | required | Stock ticker symbol |
+| `period` | STRING | "1mo" | Data period: 1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max |
+| `interval_val` | STRING | "1d" | Data interval: 1m, 2m, 5m, 15m, 30m, 60m, 90m, 1h, 1d, 5d, 1wk, 1mo, 3mo |
+
+#### `get_financials(symbol, statement_type)`
+
+Get financial statements for a company.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `symbol` | STRING | required | Stock ticker symbol |
+| `statement_type` | STRING | "income" | Statement type: "income", "balance", or "cashflow" |
+
+#### `get_recommendations(symbol)`
+
+Get analyst recommendations and ratings.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `symbol` | STRING | required | Stock ticker symbol |
+
+#### `get_dividends(symbol)`
+
+Get dividend payment history.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `symbol` | STRING | required | Stock ticker symbol |
+
 ## Architecture
 
 ### Authentication Patterns
@@ -145,6 +207,8 @@ The notebooks implement two authentication patterns based on API requirements:
 2. **Basic Auth (Companies House)**: Uses Python UDFs with an inner/outer function pattern:
    - **Inner functions** (`*_inner`): Python functions that handle Basic auth and API calls
    - **Outer functions**: SQL wrappers that retrieve the API key from Databricks Secrets and pass it to inner functions
+
+3. **No Auth (Yahoo Finance)**: Uses Python UDFs with the yfinance library, which scrapes public Yahoo Finance data. No API key is required.
 
 ### Security
 
@@ -188,3 +252,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Databricks HTTP Connections](https://docs.databricks.com/sql/language-manual/sql-ref-syntax-ddl-create-connection.html)
 - [Tavily API Documentation](https://docs.tavily.com/)
 - [Companies House API Documentation](https://developer.company-information.service.gov.uk/)
+- [yfinance Library](https://github.com/ranaroussi/yfinance)
+- [Yahoo Finance](https://finance.yahoo.com/)

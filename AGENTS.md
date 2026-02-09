@@ -12,7 +12,8 @@ This repository contains Databricks notebooks that create Unity Catalog (UC) fun
 databricks-reference-data/
 ├── notebooks/           # Databricks notebooks that create UC functions
 │   ├── tavily.py       # Web search and content extraction
-│   └── companies_house.py  # UK company data
+│   ├── companies_house.py  # UK company data
+│   └── yahoo_finance.py    # Stock market data
 ├── pyproject.toml      # Project config and ruff settings
 ├── README.md           # User documentation
 ├── AGENTS.md           # This file
@@ -69,6 +70,35 @@ SELECT catalog.companies_house.get_company_officers(company_number => '14307029'
 SELECT catalog.companies_house.get_filing_history(company_number => '14307029');
 ```
 
+### Yahoo Finance (`notebooks/yahoo_finance.py`)
+
+Creates functions for stock market data and financial information using the yfinance library.
+
+**Required Parameters:**
+- `catalog`: Target Unity Catalog name
+- `schema`: Schema name (default: "yahoo_finance")
+
+**Note:** No API key required - uses the yfinance Python library which scrapes public Yahoo Finance data.
+
+**Functions Created:**
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `get_stock_info` | `get_stock_info(symbol STRING) RETURNS STRING` | Get comprehensive stock information |
+| `get_stock_history` | `get_stock_history(symbol STRING, period STRING DEFAULT '1mo', interval_val STRING DEFAULT '1d') RETURNS STRING` | Get historical OHLCV data |
+| `get_financials` | `get_financials(symbol STRING, statement_type STRING DEFAULT 'income') RETURNS STRING` | Get financial statements |
+| `get_recommendations` | `get_recommendations(symbol STRING) RETURNS STRING` | Get analyst recommendations |
+| `get_dividends` | `get_dividends(symbol STRING) RETURNS STRING` | Get dividend history |
+
+**Example Usage:**
+```sql
+SELECT catalog.yahoo_finance.get_stock_info(symbol => 'AAPL');
+SELECT catalog.yahoo_finance.get_stock_history(symbol => 'MSFT', period => '5d', interval_val => '1d');
+SELECT catalog.yahoo_finance.get_financials(symbol => 'GOOGL', statement_type => 'income');
+SELECT catalog.yahoo_finance.get_recommendations(symbol => 'NVDA');
+SELECT catalog.yahoo_finance.get_dividends(symbol => 'JNJ');
+```
+
 ## Working with This Repository
 
 ### Adding a New Integration
@@ -105,6 +135,11 @@ SELECT catalog.companies_house.get_filing_history(company_number => '14307029');
 - Create Python UDFs with inner/outer pattern:
   - Inner function: handles auth and API call
   - Outer function: retrieves secret and calls inner
+
+**No Auth APIs (e.g., Yahoo Finance):**
+- Use Python UDFs directly
+- Leverage libraries like yfinance that handle data retrieval
+- No secrets or connections needed
 
 ### Testing
 
