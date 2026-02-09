@@ -102,17 +102,6 @@ print(f"Using schema: {schema}")
 
 # COMMAND ----------
 
-# DBTITLE 1,Create SQL helper function to get API key
-# MAGIC %sql
-# MAGIC -- Create a SQL helper function that returns the API key from secrets
-# MAGIC CREATE OR REPLACE FUNCTION get_api_key()
-# MAGIC RETURNS STRING
-# MAGIC LANGUAGE SQL
-# MAGIC COMMENT 'Helper function to retrieve Companies House API key from secrets'
-# MAGIC RETURN secret('companies_house', 'api_key');
-
-# COMMAND ----------
-
 # DBTITLE 1,Create Python function for searching companies
 # MAGIC %sql
 # MAGIC CREATE OR REPLACE FUNCTION search_companies_inner(
@@ -171,7 +160,7 @@ COMMENT 'Search companies using Companies House API'
 RETURN
     SELECT {catalog_name}.{schema}.search_companies_inner(
         query,
-        {catalog_name}.{schema}.get_api_key(),
+        secret('companies_house', 'api_key'),
         items_per_page,
         start_index
     );
@@ -241,7 +230,7 @@ COMMENT 'Get detailed company profile from Companies House API'
 RETURN
     {catalog_name}.{schema}.get_company_profile_inner(
         company_number,
-        {catalog_name}.{schema}.get_api_key()
+        secret('companies_house', 'api_key')
     );
 """
 
@@ -314,7 +303,7 @@ COMMENT 'Get list of company officers from Companies House API'
 RETURN
     {catalog_name}.{schema}.get_company_officers_inner(
         company_number,
-        {catalog_name}.{schema}.get_api_key(),
+        secret('companies_house', 'api_key'),
         items_per_page,
         start_index
     );
@@ -381,7 +370,7 @@ COMMENT 'Get company filing history from Companies House API'
 RETURN
     {catalog_name}.{schema}.get_filing_history_inner(
         company_number,
-        {catalog_name}.{schema}.get_api_key(),
+        secret('companies_house', 'api_key'),
         items_per_page,
         start_index
     );
@@ -439,7 +428,7 @@ display(filing_df)
 # MAGIC
 # MAGIC ### Secret Management
 # MAGIC * API key stored securely in Databricks Secrets (scope: `companies_house`, key: `api_key`)
-# MAGIC * `get_api_key()` - SQL helper function to retrieve the API key from secrets
+# MAGIC * Outer functions call `secret('companies_house', 'api_key')` directly
 # MAGIC
 # MAGIC ### UC Functions
 # MAGIC
