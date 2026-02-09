@@ -49,6 +49,7 @@ print(f"Using schema: {schema}")
 # MAGIC )
 # MAGIC RETURNS STRING
 # MAGIC LANGUAGE PYTHON
+# MAGIC PACKAGES ('yfinance')
 # MAGIC COMMENT 'Get comprehensive stock information from Yahoo Finance including company details, market cap, P/E ratio, sector, and more'
 # MAGIC AS $$
 # MAGIC import yfinance as yf
@@ -85,6 +86,7 @@ display(result_df)
 # MAGIC )
 # MAGIC RETURNS STRING
 # MAGIC LANGUAGE PYTHON
+# MAGIC PACKAGES ('yfinance')
 # MAGIC COMMENT 'Get historical OHLCV (Open, High, Low, Close, Volume) data for a stock'
 # MAGIC AS $$
 # MAGIC import yfinance as yf
@@ -132,6 +134,7 @@ display(result_df)
 # MAGIC )
 # MAGIC RETURNS STRING
 # MAGIC LANGUAGE PYTHON
+# MAGIC PACKAGES ('yfinance')
 # MAGIC COMMENT 'Get financial statements (income statement, balance sheet, or cash flow) for a company'
 # MAGIC AS $$
 # MAGIC import yfinance as yf
@@ -183,6 +186,7 @@ display(result_df)
 # MAGIC )
 # MAGIC RETURNS STRING
 # MAGIC LANGUAGE PYTHON
+# MAGIC PACKAGES ('yfinance')
 # MAGIC COMMENT 'Get analyst recommendations and ratings for a stock'
 # MAGIC AS $$
 # MAGIC import yfinance as yf
@@ -227,6 +231,7 @@ display(result_df)
 # MAGIC )
 # MAGIC RETURNS STRING
 # MAGIC LANGUAGE PYTHON
+# MAGIC PACKAGES ('yfinance')
 # MAGIC COMMENT 'Get dividend payment history for a stock'
 # MAGIC AS $$
 # MAGIC import yfinance as yf
