@@ -4,20 +4,27 @@ This document provides instructions for AI agents working with this repository.
 
 ## Repository Purpose
 
-This repository contains Databricks notebooks that create Unity Catalog (UC) functions for accessing external reference data APIs. The functions enable SQL-based access to external data sources from within Databricks.
+This repository provides two deployment options for accessing external reference data APIs in Databricks:
+
+1. **Unity Catalog Functions** - SQL-callable functions deployed via notebooks
+2. **MCP Servers** - Model Context Protocol servers deployed as Databricks Apps
 
 ## Repository Structure
 
 ```
 databricks-reference-data/
-├── notebooks/           # Databricks notebooks that create UC functions
-│   ├── tavily.py       # Web search and content extraction
-│   ├── companies_house.py  # UK company data
-│   └── yahoo_finance.py    # Stock market data
-├── pyproject.toml      # Project config and ruff settings
-├── README.md           # User documentation
-├── AGENTS.md           # This file
-└── LICENSE             # MIT License
+├── notebooks/              # UC Functions and data pipelines
+│   ├── tavily.py          # Web search and content extraction
+│   ├── companies_house.py # UK company data
+│   ├── yahoo_finance.py   # Stock market data
+│   └── wikipedia.py       # Wikipedia Vector Search pipeline
+├── mcp-servers/            # MCP Servers (AI agent tools)
+│   ├── companies-house/   # Companies House MCP server
+│   └── yahoo-finance/     # Yahoo Finance MCP server
+├── pyproject.toml         # Project config and ruff settings
+├── README.md              # User documentation
+├── AGENTS.md              # This file
+└── LICENSE                # MIT License
 ```
 
 ## Available Integrations
@@ -99,10 +106,89 @@ SELECT catalog.yahoo_finance.get_recommendations(symbol => 'NVDA');
 SELECT catalog.yahoo_finance.get_dividends(symbol => 'JNJ');
 ```
 
+### Wikipedia (`notebooks/wikipedia.py`)
+
+Creates a data pipeline for semantic search over Wikipedia content. Unlike other integrations, this notebook doesn't create UC functions - it builds a Vector Search index.
+
+**Required Parameters:**
+- `catalog`: Target Unity Catalog name
+- `schema`: Schema name (default: "wikipedia")
+
+**Note:** No API key required - downloads public Wikipedia dumps.
+
+**Pipeline Steps:**
+1. Downloads full English Wikipedia dump (~20GB compressed)
+2. Parses XML using `mwxml` library
+3. Cleans text using `mwparserfromhell`
+4. Creates Delta tables with Change Data Feed
+5. Sets up Databricks Vector Search index
+
+**Tables Created:**
+
+| Table | Description |
+|-------|-------------|
+| `wikipedia_raw` | Raw parsed articles |
+| `wikipedia_latest` | Latest version of each article |
+| `wikipedia_cleaned` | Cleaned text content |
+| `wikipedia_chunks` | Text chunks for embedding |
+
+**Vector Search Index:** `wikipedia_chunks_index`
+
+## MCP Servers
+
+MCP servers provide tools that AI agents can discover and invoke. Each server is deployed as a Databricks App.
+
+> **Note:** For Tavily, use the official [Tavily MCP server](https://docs.tavily.com/integrations/mcp) available in the marketplace.
+
+### Companies House MCP Server (`mcp-servers/companies-house/`)
+
+| Tool | Parameters | Description |
+|------|------------|-------------|
+| `health` | None | Check server health |
+| `search_companies` | `query`, `items_per_page`, `start_index` | Search UK companies |
+| `get_company_profile` | `company_number` | Get company details |
+| `get_company_officers` | `company_number`, `items_per_page`, `start_index` | Get officers |
+| `get_filing_history` | `company_number`, `items_per_page`, `start_index` | Get filings |
+
+**Environment Variables:**
+- `COMPANIES_HOUSE_API_KEY`: Companies House API key (from Databricks Secrets)
+
+### Yahoo Finance MCP Server (`mcp-servers/yahoo-finance/`)
+
+| Tool | Parameters | Description |
+|------|------------|-------------|
+| `health` | None | Check server health |
+| `get_stock_info` | `symbol` | Get stock information |
+| `get_stock_history` | `symbol`, `period`, `interval` | Get OHLCV history |
+| `get_financials` | `symbol`, `statement_type` | Get financial statements |
+| `get_recommendations` | `symbol` | Get analyst recommendations |
+| `get_dividends` | `symbol` | Get dividend history |
+
+**Environment Variables:** None required
+
+### Connecting to MCP Servers
+
+```python
+from databricks_mcp import DatabricksMCPClient
+from databricks.sdk import WorkspaceClient
+
+mcp_client = DatabricksMCPClient(
+    server_url="https://<app-url>/mcp",
+    workspace_client=WorkspaceClient()
+)
+
+# List available tools
+tools = mcp_client.list_tools()
+
+# Call a tool
+result = mcp_client.call_tool("search_companies", {"query": "databricks"})
+```
+
 ## Working with This Repository
 
 ### Adding a New Integration
 
+**For UC Functions:**
 1. Create a new notebook in `notebooks/` following this pattern:
    - Add widget parameters for `api_key`, `catalog`, and `schema`
    - Set catalog and schema context
@@ -110,12 +196,18 @@ SELECT catalog.yahoo_finance.get_dividends(symbol => 'JNJ');
    - Create UC functions with clear COMMENT descriptions
    - Include test cells
 
-2. Update `README.md` with:
-   - New row in the integrations table
-   - Function reference section
-   - Usage examples
+**For MCP Servers:**
+1. Create a new directory in `mcp-servers/` with:
+   - `server/__init__.py`
+   - `server/app.py` - FastAPI + FastMCP setup
+   - `server/main.py` - Entry point
+   - `server/tools.py` - Tool definitions with `@mcp_server.tool` decorator
+   - `app.yaml` - Databricks Apps config with secrets
+   - `pyproject.toml` - Dependencies and script entry point
+   - `requirements.txt` - Just `uv` for deployment
+   - `README.md` - Server documentation
 
-3. Update this file with the new integration details
+2. Update `README.md` and this file with the new integration details
 
 ### Code Style
 

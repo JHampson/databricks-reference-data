@@ -1,0 +1,5 @@
+command:
+  - uv
+  - run
+  - yahoo-finance-mcp-server
+# No secrets required - yfinance uses public Yahoo Finance data

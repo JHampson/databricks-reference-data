@@ -1,18 +1,25 @@
 # Databricks Reference Data
 
-A collection of Databricks notebooks that create Unity Catalog functions for accessing external reference data APIs. These functions enable SQL-based access to external data sources directly from your Databricks environment.
+A collection of tools for accessing external reference data in Databricks. This repository provides two deployment options:
+
+1. **Unity Catalog Functions** - SQL-callable functions deployed via notebooks
+2. **MCP Servers** - Model Context Protocol servers deployed as Databricks Apps
 
 ## Overview
 
-This repository provides ready-to-use Databricks notebooks that set up Unity Catalog (UC) functions for various external APIs. Once deployed, these functions can be called from SQL, Python, or any Databricks-supported language, making external data easily accessible across your data platform.
+This repository provides ready-to-use integrations for various external APIs. Choose the deployment method that best fits your use case:
+
+- **UC Functions**: Best for SQL-based access and integration with Databricks SQL warehouses
+- **MCP Servers**: Best for AI agents and LLM tool-calling scenarios
 
 ## Available Integrations
 
-| Integration | Notebook | Functions Created | Description |
-|-------------|----------|-------------------|-------------|
-| **Tavily** | `notebooks/tavily.py` | `search()`, `extract()` | Web search and content extraction API |
-| **Companies House** | `notebooks/companies_house.py` | `search_companies()`, `get_company_profile()`, `get_company_officers()`, `get_filing_history()` | UK company registration data |
-| **Yahoo Finance** | `notebooks/yahoo_finance.py` | `get_stock_info()`, `get_stock_history()`, `get_financials()`, `get_recommendations()`, `get_dividends()` | Stock market data and financial information |
+| Integration | UC Functions | MCP Server | Description |
+|-------------|--------------|------------|-------------|
+| **Tavily** | `notebooks/tavily.py` | [Marketplace](https://docs.tavily.com/integrations/mcp) | Web search and content extraction |
+| **Companies House** | `notebooks/companies_house.py` | `mcp-servers/companies-house/` | UK company registration data |
+| **Yahoo Finance** | `notebooks/yahoo_finance.py` | `mcp-servers/yahoo-finance/` | Stock market data |
+| **Wikipedia** | `notebooks/wikipedia.py` | - | Wikipedia dump processing and Vector Search |
 
 ## Prerequisites
 
@@ -22,6 +29,7 @@ This repository provides ready-to-use Databricks notebooks that set up Unity Cat
   - **Tavily**: Get an API key from [tavily.com](https://tavily.com)
   - **Companies House**: Register at [developer.company-information.service.gov.uk](https://developer.company-information.service.gov.uk/)
   - **Yahoo Finance**: No API key required (uses yfinance library)
+  - **Wikipedia**: No API key required (downloads public Wikipedia dumps)
 
 ## Usage
 
@@ -196,6 +204,29 @@ Get dividend payment history.
 |-----------|------|---------|-------------|
 | `symbol` | STRING | required | Stock ticker symbol |
 
+### Wikipedia Data Pipeline
+
+The Wikipedia notebook (`notebooks/wikipedia.py`) is different from the other integrations - instead of creating UC functions, it sets up a complete data pipeline for semantic search over Wikipedia content.
+
+**What it creates:**
+- Downloads the full English Wikipedia dump (~20GB compressed)
+- Parses XML and extracts article content using `mwxml` and `mwparserfromhell`
+- Creates Delta tables with Change Data Feed enabled:
+  - `wikipedia_raw` - Raw parsed articles
+  - `wikipedia_latest` - Latest version of each article
+  - `wikipedia_cleaned` - Cleaned text content
+  - `wikipedia_chunks` - Text chunks for embedding
+- Sets up a Databricks Vector Search index for semantic search
+
+**Widget Parameters:**
+
+| Parameter | Description | Example |
+|-----------|-------------|---------|
+| `catalog` | Target Unity Catalog name | `main` |
+| `schema` | Schema name (default: "wikipedia") | `wikipedia` |
+
+**Note:** This notebook processes a large dataset and may take several hours to complete.
+
 ## Architecture
 
 ### Authentication Patterns
@@ -215,6 +246,84 @@ The notebooks implement two authentication patterns based on API requirements:
 - API keys are stored in Databricks Secrets and never exposed in queries
 - HTTP connections are created within the target schema
 - Functions automatically retrieve credentials at runtime
+
+## MCP Servers
+
+MCP (Model Context Protocol) servers provide an alternative deployment method optimized for AI agents and LLM tool-calling. Each server is deployed as a Databricks App.
+
+### Available MCP Servers
+
+| Server | Directory | Tools | API Key Required |
+|--------|-----------|-------|------------------|
+| **Companies House** | `mcp-servers/companies-house/` | `search_companies`, `get_company_profile`, `get_company_officers`, `get_filing_history` | Yes |
+| **Yahoo Finance** | `mcp-servers/yahoo-finance/` | `get_stock_info`, `get_stock_history`, `get_financials`, `get_recommendations`, `get_dividends` | No |
+
+> **Note:** For Tavily, use the official [Tavily MCP server](https://docs.tavily.com/integrations/mcp) available in the marketplace.
+
+### Deploying an MCP Server
+
+1. **Create the app** (app names use `mcp-` prefix):
+   ```bash
+   databricks apps create mcp-companies-house --description "MCP Server for UK Companies House API"
+   ```
+
+2. **Store secrets and add as app resource** (if required):
+   ```bash
+   # Create secret scope and store API key
+   databricks secrets create-scope companies_house
+   databricks secrets put-secret companies_house api_key --string-value "your-api-key"
+   
+   # Add the secret as an app resource
+   databricks apps update mcp-companies-house --json '{
+     "resources": [{
+       "name": "api_key",
+       "secret": {
+         "scope": "companies_house",
+         "key": "api_key",
+         "permission": "READ"
+       }
+     }]
+   }'
+   ```
+
+3. **Sync and deploy**:
+   ```bash
+   cd mcp-servers/companies-house
+   DATABRICKS_USERNAME=$(databricks current-user me | jq -r .userName)
+   databricks sync . "/Users/$DATABRICKS_USERNAME/mcp-companies-house"
+   databricks apps deploy mcp-companies-house --source-code-path "/Workspace/Users/$DATABRICKS_USERNAME/mcp-companies-house"
+   ```
+
+4. **Connect from an AI agent**:
+   ```python
+   from databricks_mcp import DatabricksMCPClient
+   from databricks.sdk import WorkspaceClient
+
+   mcp_client = DatabricksMCPClient(
+       server_url="https://<app-url>/mcp",
+       workspace_client=WorkspaceClient()
+   )
+   tools = mcp_client.list_tools()
+   ```
+
+### Local Development
+
+Each MCP server can be run locally for development:
+
+```bash
+cd mcp-servers/companies-house
+export COMPANIES_HOUSE_API_KEY="your-api-key"
+uv sync
+uv run companies-house-mcp-server
+```
+
+The server will be available at `http://localhost:8000/mcp`.
+
+### App Naming Convention
+
+MCP server apps use the `mcp-` prefix:
+- `mcp-companies-house`
+- `mcp-yahoo-finance`
 
 ## Contributing
 
@@ -248,9 +357,18 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Resources
 
-- [Databricks Unity Catalog Functions](https://docs.databricks.com/sql/language-manual/sql-ref-functions-udf.html)
-- [Databricks HTTP Connections](https://docs.databricks.com/sql/language-manual/sql-ref-syntax-ddl-create-connection.html)
+### Databricks
+- [Unity Catalog Functions](https://docs.databricks.com/sql/language-manual/sql-ref-functions-udf.html)
+- [HTTP Connections](https://docs.databricks.com/sql/language-manual/sql-ref-syntax-ddl-create-connection.html)
+- [Databricks Apps](https://docs.databricks.com/dev-tools/databricks-apps/index.html)
+- [Custom MCP Servers](https://docs.databricks.com/aws/en/generative-ai/mcp/custom-mcp)
+
+### External APIs
 - [Tavily API Documentation](https://docs.tavily.com/)
 - [Companies House API Documentation](https://developer.company-information.service.gov.uk/)
 - [yfinance Library](https://github.com/ranaroussi/yfinance)
 - [Yahoo Finance](https://finance.yahoo.com/)
+
+### MCP Protocol
+- [Model Context Protocol](https://modelcontextprotocol.io)
+- [FastMCP](https://github.com/jlowin/fastmcp)

@@ -1,0 +1,7 @@
+command:
+  - uv
+  - run
+  - companies-house-mcp-server
+env:
+  - name: COMPANIES_HOUSE_API_KEY
+    valueFrom: api_key
